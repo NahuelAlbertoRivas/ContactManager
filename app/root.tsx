@@ -15,8 +15,8 @@ import {
 } from "@remix-run/react";
 
 import appStylesHref from "./app.css";
-import { getContacts } from "./data";
-import Contact from "./routes/contacts.$contactId";
+import { getContacts } from "./data.server";
+// import Contact from "./routes/contacts.$contactId"; // sin efecto luego de implementar strapi
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -51,14 +51,12 @@ export default function App() {
               />
               <div id="search-spinner" aria-hidden hidden={true} />
             </Form>
-            <Form method="post">
-              <button type="submit">Add</button>
-            </Form>
+            <Link to ="contacts/create" className="buttonLink">Create</Link>
           </div>
           <nav> 
             {contacts.length ? ( // Se reemplaza la lista estática original propuesta, por la siguiente dinámica, finalmente se lleva a cabo el mapeo con cada dato ficticio recuperado
                 <ul>             
-                  {contacts.map((contact) => ( // obs: a partir de la línea que contiene la etiqueta "Link" se renderiza cada url asociada (de ahí el hecho que cada vez que clickeamos en un contacto diferente, la dirección se actualiza y aparecerá ' https://.../contacts/steve ', ' https://.../contacts/dorian ', etc)
+                  {contacts.map((contact: any) => ( // obs: a partir de la línea que contiene la etiqueta "Link" se renderiza cada url asociada (de ahí el hecho que cada vez que clickeamos en un contacto diferente, la dirección se actualiza y aparecerá ' https://.../contacts/steve ', ' https://.../contacts/dorian ', etc)
                     <li key={contact.id}> 
                       <Link to={`contacts/${contact.id}`}> 
                         {contact.first || contact.last ? (

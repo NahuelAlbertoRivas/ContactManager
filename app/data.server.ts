@@ -1,11 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////
-// 🛑 Nothing in here has anything to do with Remix, it's just a fake database
-////////////////////////////////////////////////////////////////////////////////
-
-import { matchSorter } from "match-sorter";
+/* import { matchSorter } from "match-sorter"; // Este bloque deja de tener relevancia luego de implementar strapi
 // @ts-expect-error - no types, but it's a tiny function
 import sortBy from "sort-by";
-import invariant from "tiny-invariant";
+import invariant from "tiny-invariant"; */
 
 type ContactMutation = {
   id?: string;
@@ -22,10 +18,7 @@ export type ContactRecord = ContactMutation & {
   createdAt: string;
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// This is just a fake DB table. In a real app you'd be talking to a real db or
-// fetching from an existing API.
-const fakeContacts = {
+/* const fakeContacts = { // Este bloque deja de tener relevancia luego de implementar strapi
   records: {} as Record<string, ContactRecord>,
 
   async getAll(): Promise<ContactRecord[]> {
@@ -58,44 +51,127 @@ const fakeContacts = {
     delete fakeContacts.records[id];
     return null;
   },
-};
+}; */
+
+// Fn. intermediaria que permite definir y manejar adecuadamente la estructura (la cual podemos visualizar en ' http://localhost:1337/api/contacts ') que retornamos
+// se plantea de forma recursiva
+export function flattenAttributes(data : any): any {
+  // Caso base
+  if(!data) return null;
+
+  // en este contexto ' data ' es un array, entonces procedemos a mapearlo y procesar cada elemento
+  if(Array.isArray(data)){
+    return data.map(flattenAttributes);
+  }
+
+  let flattened: { [key: string]: any } = {};
+
+  // Procesamiento de atributos
+  if(data.attributes){
+    for(let key in data.attributes){
+      if(
+        typeof data.attributes[key] === "object" &&
+        data.attributes[key] !== null &&
+        "data" in data.attributes[key]
+      ) {
+        flattened[key] = flattenAttributes(data.attributes[key].data);
+      } else{
+        flattened[key] = data.attributes[key];
+      }
+    }
+  }
+
+  // Copiando propiedades no pertinentes a atributos o bien al objeto ' data ' (obs: revisar mejor)
+  for(let key in data){
+    if(key !== "attributes" && key !== "data"){
+      flattened[key] = data[key];
+    }
+  }
+
+  // Proceso de datos anidados (first, last, avatar, etc.)
+  if(data.data){
+    flattened = { ...flattened, ...flattenAttributes(data.data) };
+  }
+
+  return flattened;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Handful of helper functions to be called from route loaders and actions
+// En las siguientes funciones, cada línea/bloque comentado guarda relación a la *anterior etapa de haber implementado Strapi* (AS), ende al igual que los bloques comentados arriba simplemente se preservan
+
+const url = process.env.STRAPI_URL || "http://127.0.0.1:1337";
+
 export async function getContacts(query?: string | null) {
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // DEF AS
+  /* await new Promise((resolve) => setTimeout(resolve, 500));
   let contacts = await fakeContacts.getAll();
   if (query) {
     contacts = matchSorter(contacts, query, {
       keys: ["first", "last"],
     });
   }
-  return contacts.sort(sortBy("last", "createdAt"));
+  return contacts.sort(sortBy("last", "createdAt")); */ 
+  // END AS
+  try {
+    const response = await fetch(url + "/api/contacts");
+    const data = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
+    const flattenAttributesData = flattenAttributes(data.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
+    return flattenAttributesData;
+  } catch (error) {
+    console.log(error)
+  }
 }
 
-export async function createEmptyContact() {
-  const contact = await fakeContacts.create({});
-  return contact;
+export async function createContact(data: any) {
+  // DEF AS
+  /* const contact = await fakeContacts.create({});
+  return contact; */ 
+  // END AS
+  try {
+    const response = await fetch(url + "/api/contacts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ data: {...data} })
+    }); // Si no pasamos un segundo parámetro a ' fetch() ' indicando el método que deseamos usar, por defecto será una petición ' get '
+    const responseData = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
+    const flattenAttributesData = flattenAttributes(responseData.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
+    return flattenAttributesData;
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export async function getContact(id: string) {
-  return fakeContacts.get(id);
+   // return fakeContacts.get(id); AS
+   try {
+    const response = await fetch(url + "/api/contacts/" + id); // Muy similar a ' getContacts() ', con la diferencia de que para obtener un único contacto concatenamos ' id ', el cual obtenemos como parámetro
+    const data = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
+    const flattenAttributesData = flattenAttributes(data.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
+    return flattenAttributesData;
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export async function updateContact(id: string, updates: ContactMutation) {
-  const contact = await fakeContacts.get(id);
+  // DEF AS
+  /* const contact = await fakeContacts.get(id);
   if (!contact) {
     throw new Error(`No contact found for ${id}`);
   }
   await fakeContacts.set(id, { ...contact, ...updates });
-  return contact;
+  return contact; */
+  // END AS
 }
 
 export async function deleteContact(id: string) {
-  fakeContacts.destroy(id);
+  // fakeContacts.destroy(id); AS
 }
 
-[
+const data = [ // variable que usaremos como referencia
   {
     avatar:
       "https://sessionize.com/image/124e-400o400o2-wHVdAuNaxi8KJrgtN3ZKci.jpg",
@@ -308,9 +384,11 @@ export async function deleteContact(id: string) {
     last: "Jensen",
     twitter: "@jenseng",
   },
-].forEach((contact) => {
+]/* // DEF AS .forEach((contact) => { // pertinente a etapa anterior de haber implementado strapi
   fakeContacts.create({
     ...contact,
     id: `${contact.first.toLowerCase()}-${contact.last.toLocaleLowerCase()}`,
   });
 });
+ */
+// END AS

@@ -1,15 +1,13 @@
 import { Form, useLoaderData } from "@remix-run/react";
-
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
-
 import type { FunctionComponent } from "react";
-
-import type { ContactRecord } from "../data";
-
-import { getContact } from "../data";
 import invariant from "tiny-invariant";
 
-export async function loader({ params } : LoaderFunctionArgs) {
+import type { ContactRecord } from "../data.server";
+
+import { getContact } from "../data.server";
+
+export async function loader({ params } : LoaderFunctionArgs) { // revisar acerca del objeto ' params '
     invariant(params.contactId, "Missing contactId param"); // Se instala el pack 'tiny-invariant' para facilitar el chequeo en caso de que el 'contactId' no exista, si no hacemos esta verificación, al llamar getContact() lanzaría un error
     const contactId = params.contactId;
     const contact = await getContact(contactId);
