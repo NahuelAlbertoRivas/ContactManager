@@ -65,7 +65,7 @@ export default function CreateContact(){ // luego de imlementar esta fn., junto 
                     name="twitter"
                     type="text"
                     label="Twitter"
-                    placeholder="@jack"
+                    placeholder="@user"
                     errors={formData?.errors}
                 />
                 <FormInput

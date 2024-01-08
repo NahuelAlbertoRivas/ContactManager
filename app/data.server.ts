@@ -132,9 +132,9 @@ export async function createContact(data: any) {
     const response = await fetch(url + "/api/contacts", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ data: {...data} })
+      body: JSON.stringify({ data: {...data} }),
     }); // Si no pasamos un segundo parámetro a ' fetch() ' indicando el método que deseamos usar, por defecto será una petición ' get '
     const responseData = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
     const flattenAttributesData = flattenAttributes(responseData.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
@@ -152,11 +152,11 @@ export async function getContact(id: string) {
     const flattenAttributesData = flattenAttributes(data.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
     return flattenAttributesData;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 
-export async function updateContact(id: string, updates: ContactMutation) {
+export async function updateContactById(id: string, updates: ContactMutation) {
   // DEF AS
   /* const contact = await fakeContacts.get(id);
   if (!contact) {
@@ -165,13 +165,27 @@ export async function updateContact(id: string, updates: ContactMutation) {
   await fakeContacts.set(id, { ...contact, ...updates });
   return contact; */
   // END AS
+  try {
+    const response = await fetch(url + "/api/contacts/" + id, {
+      method: "PUT", // cambiamos el POST a PUT, ya que se pretende un update
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data: {...updates} }),
+    }); // Si no pasamos un segundo parámetro a ' fetch() ' indicando el método que deseamos usar, por defecto será una petición ' get '
+    const responseData = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
+    const flattenAttributesData = flattenAttributes(responseData.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
+    return flattenAttributesData;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export async function deleteContact(id: string) {
   // fakeContacts.destroy(id); AS
 }
 
-const data = [ // variable que usaremos como referencia
+/* const data = [ // variable que usaremos como referencia
   {
     avatar:
       "https://sessionize.com/image/124e-400o400o2-wHVdAuNaxi8KJrgtN3ZKci.jpg",
