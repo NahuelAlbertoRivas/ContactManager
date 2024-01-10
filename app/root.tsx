@@ -37,7 +37,7 @@ export async function loader( { request } : LoaderFunctionArgs ) {  // esta fn. 
 
 export function ErrorBoundary(){
   const error = useRouteError();
-  return (
+  return ( // ver ' Error Sanitization '
     <html>
       <head>
         <title>Oops!</title>
@@ -46,16 +46,13 @@ export function ErrorBoundary(){
       </head>
       <body className="root-error">
         <h1>
-          Oops, cannot redirect you.
-        </h1>
-        <p>
           {" "}
           {isRouteErrorResponse(error)
-            ? `${error.status} ${error.statusText}`
+            ? `${error.status} ${error.statusText}` // podría implementar ' error.data ' en la segunda interpolación, lo cual accedería al mensaje que se manda por consola al lanzar la respuesta definida en el catch definido en ' getContact() '
             : error instanceof Error
             ? error.message
             : "Unknown Error"}
-        </p>
+        </h1>
         <Scripts />
       </body>
     </html>
@@ -120,7 +117,7 @@ export default function App() {
                 <ul>             
                   {contacts.map((contact: any) => ( // obs: a partir de la línea que contiene la etiqueta "Link" se renderiza cada url asociada (de ahí el hecho que cada vez que clickeamos en un contacto diferente, la dirección se actualiza y aparecerá ' https://.../contacts/steve ', ' https://.../contacts/dorian ', etc)
                     <li key={contact.id}> 
-                      <NavLink to={`contacts/${contact.id}`}
+                      <NavLink to={`contacts/${contact.id}`} // ' NavLink ' permite pasar una fn. al ' className '
                         className={({ isActive, isPending}) => // se implementa efecto en items, ' active ' para los seleccionados, "" para los que no, y ' pending ' a los seleccionados que están siendo cargados
                           isActive ? "active" : isPending ? "pending" : ""
                         }

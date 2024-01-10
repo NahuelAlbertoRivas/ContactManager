@@ -168,6 +168,11 @@ export async function getContact(id: string) {
     return flattenAttributesData;
   } catch (error) {
     console.log(error);
+    // throw new Error("Oh no! Something went wrong!");
+    throw new Response("Nonexistent adress, cannot redirect you.", {
+        status: 500,
+        statusText: "- Oh no! Something went wrong!" // este campo es al que accedemos como ' error.status '
+    });
   }
 }
 
