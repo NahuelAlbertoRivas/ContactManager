@@ -410,3 +410,13 @@ i {
   justify-content: center;
   width: 100%;
 }
+
+.root-error{
+  background:hsl(224, 98%, 58%);
+  color: white;
+  padding: 6rem;
+}
+
+.contact-error{
+  padding: 6rem;
+}

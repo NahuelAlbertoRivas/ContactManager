@@ -18,6 +18,8 @@ export type ContactRecord = ContactMutation & {
   createdAt: string;
 };
 
+import qs from "qs"; // instalamos ' qs ' en el proyecto principalmente para trabajar con ' filtering ' (indagar más en documentación de Remix) en consultas, así como de manera legible, puntualmente a partir de la instancia en que queremos modificar la propiedad ' pagination '
+
 /* const fakeContacts = { // Este bloque deja de tener relevancia luego de implementar strapi
   records: {} as Record<string, ContactRecord>,
 
@@ -102,7 +104,7 @@ export function flattenAttributes(data : any): any {
 
 const url = process.env.STRAPI_URL || "http://127.0.0.1:1337";
 
-export async function getContacts(query?: string | null) {
+export async function getContacts(q: string | null) { // si defino ' query? ', entonces el parámetro será opcional -luego simplemente se aclara que será string o null-
   // DEF AS
   /* await new Promise((resolve) => setTimeout(resolve, 500));
   let contacts = await fakeContacts.getAll();
@@ -113,8 +115,21 @@ export async function getContacts(query?: string | null) {
   }
   return contacts.sort(sortBy("last", "createdAt")); */ 
   // END AS
+  const query = qs.stringify({ // obs: si definimos esta var. debajo de ' loader ' no sería accesible para esta fn. (averiguar acerca de hoisting en TS)
+    filters:{ // añadimos los campos por los cuales se va a filtrar
+      $or: [
+        { first: { $contains: q } },
+        { last: { $contains: q } },
+        { twitter: { $contains: q } },
+      ]
+    },
+    pagination: {
+      pageSize: 50, // se configura 50, pero acá es donde deberíamos setear la cantidad de items a mostrar que se desee
+      page: 1,
+    },
+  });
   try {
-    const response = await fetch(url + "/api/contacts");
+    const response = await fetch(url + "/api/contacts?" + query); // 
     const data = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
     const flattenAttributesData = flattenAttributes(data.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
     return flattenAttributesData;
@@ -183,6 +198,16 @@ export async function updateContactById(id: string, updates: ContactMutation) {
 
 export async function deleteContact(id: string) {
   // fakeContacts.destroy(id); AS
+  try {
+    const response = await fetch(url + "/api/contacts/" + id, {
+      method:"DELETE",
+    }); 
+    const data = await response.json(); // acá se recibiría el objeto de cada contacto (como lo seteamos en strapi) en formato json
+    const flattenAttributesData = flattenAttributes(data.data); // acá, el objeto ' data ', tendrá los datos de contactos, así como los metadatos, por eso accedemos particularmente a la instancia ' data.data '
+    return flattenAttributesData;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 /* const data = [ // variable que usaremos como referencia
